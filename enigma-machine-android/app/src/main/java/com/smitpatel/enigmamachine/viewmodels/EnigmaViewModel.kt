@@ -12,6 +12,8 @@ import com.smitpatel.enigmamachine.numberToLetter
 import com.smitpatel.enigmamachine.ui.RotorPosition
 import com.smitpatel.enigmamachine.ui.main.ClipboardCopyState
 import com.smitpatel.enigmamachine.ui.main.EnigmaUiState
+import org.json.JSONArray
+import org.json.JSONObject
 import java.util.Stack
 
 class EnigmaViewModel(private val savedState: SavedStateHandle) : ViewModel() {
@@ -31,6 +33,7 @@ class EnigmaViewModel(private val savedState: SavedStateHandle) : ViewModel() {
             activeLampboard = -1,
             clipboardCopyState = null,
             showSettingsChangedToast = false,
+            showSettingsErrorToast = false,
             pasteError = null,
         )
     )
@@ -90,6 +93,7 @@ class EnigmaViewModel(private val savedState: SavedStateHandle) : ViewModel() {
                                 activeLampboard = -1,
                                 clipboardCopyState = null,
                                 showSettingsChangedToast = false,
+                                showSettingsErrorToast = false,
                                 pasteError = null,
                             )
                         }
@@ -116,6 +120,7 @@ class EnigmaViewModel(private val savedState: SavedStateHandle) : ViewModel() {
                             activeLampboard = -1,
                             clipboardCopyState = null,
                             showSettingsChangedToast = false,
+                            showSettingsErrorToast = false,
                             pasteError = null,
                         )
                     }
@@ -160,6 +165,7 @@ class EnigmaViewModel(private val savedState: SavedStateHandle) : ViewModel() {
                             activeLampboard = -1,
                             clipboardCopyState = null,
                             showSettingsChangedToast = true,
+                            showSettingsErrorToast = false,
                             pasteError = null,
                         )
                 }
@@ -169,6 +175,7 @@ class EnigmaViewModel(private val savedState: SavedStateHandle) : ViewModel() {
                     clipboardCopyState = ClipboardCopyState(
                         text = it.formatCopy(),
                         settingsState = null,
+                        json = false
                     )
                 )
             }
@@ -177,10 +184,11 @@ class EnigmaViewModel(private val savedState: SavedStateHandle) : ViewModel() {
                     clipboardCopyState = ClipboardCopyState(
                         text = it.formatCopy(),
                         settingsState = null,
+                        json = false
                     )
                 )
             }
-            is EnigmaEvent.CopySettings -> enigmaUiState.value?.encodedMessage?.let {
+            is EnigmaEvent.CopySettingsText -> enigmaUiState.value?.encodedMessage?.let {
                 enigmaUiState.value = enigmaUiState.value?.copy(
                     clipboardCopyState = ClipboardCopyState(
                         text = "",
@@ -197,6 +205,28 @@ class EnigmaViewModel(private val savedState: SavedStateHandle) : ViewModel() {
                             reflector = enigma.reflector,
                             plugboardPairs = enigma.plugboard.getAllPairs()
                         ),
+                        json = false
+                    )
+                )
+            }
+            is EnigmaEvent.CopySettingsJson -> enigmaUiState.value?.encodedMessage?.let {
+                enigmaUiState.value = enigmaUiState.value?.copy(
+                    clipboardCopyState = ClipboardCopyState(
+                        text = "",
+                        settingsState = ClipboardCopyState.SettingsCopyState(
+                            rotorOneLabel = enigma.rotorOne.rotorOption,
+                            rotorTwoLabel = enigma.rotorTwo.rotorOption,
+                            rotorThreeLabel = enigma.rotorThree.rotorOption,
+                            rotorOnePosition = enigma.rotorOne.position,
+                            rotorTwoPosition = enigma.rotorTwo.position,
+                            rotorThreePosition = enigma.rotorThree.position,
+                            rotorOneRing = enigma.rotorOne.ring,
+                            rotorTwoRing = enigma.rotorTwo.ring,
+                            rotorThreeRing = enigma.rotorThree.ring,
+                            reflector = enigma.reflector,
+                            plugboardPairs = enigma.plugboard.getAllPairs()
+                        ),
+                        json = true
                     )
                 )
             }
@@ -236,8 +266,12 @@ class EnigmaViewModel(private val savedState: SavedStateHandle) : ViewModel() {
                 }
 
             }
+            is EnigmaEvent.PasteEnigmaSettings -> {
+                
+            }
             is EnigmaEvent.ToastMessageDisplayed -> enigmaUiState.value = enigmaUiState.value?.copy(
                 showSettingsChangedToast = false,
+                showSettingsErrorToast = false,
                 clipboardCopyState = null,
             )
             is EnigmaEvent.SaveState -> {
